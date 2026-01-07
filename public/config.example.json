@@ -1,0 +1,16 @@
+{
+  "platformBaseUrl": "https://app.example.com",
+  "messagingApiPrefix": "/messaging/api/v1",
+  "defaultTenant": "jamboree26",
+  "notificationPollIntervalMs": 30000,
+  "notificationLimit": 10,
+  "firebase": {
+    "apiKey": "replace-me",
+    "authDomain": "replace-me.firebaseapp.com",
+    "projectId": "replace-me",
+    "storageBucket": "replace-me.appspot.com",
+    "messagingSenderId": "000000000000",
+    "appId": "1:000000000000:web:replace"
+  },
+  "firebaseVapidKey": "replace-me"
+}
