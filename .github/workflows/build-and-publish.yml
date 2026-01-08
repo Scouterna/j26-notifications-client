@@ -71,4 +71,4 @@ jobs:
       # - name: Restart deployment
       #   if: github.event_name != 'pull_request'
       #   run: |
-      #     kubectl rollout restart deployment/j26-infratest -n j26-infratest
+      #     kubectl rollout restart deployment/notification-client -n j26-notifications

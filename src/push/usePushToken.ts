@@ -5,7 +5,9 @@ import { getMessagingClient } from '../firebase';
 
 function buildServiceWorkerUrl(firebaseConfig: FirebaseConfig): string {
   const cfg = btoa(JSON.stringify(firebaseConfig));
-  return `/firebase-messaging-sw.js?cfg=${cfg}`;
+  const swUrl = new URL('firebase-messaging-sw.js', window.location.href);
+  swUrl.searchParams.set('cfg', cfg);
+  return swUrl.toString();
 }
 
 type UsePushTokenResult = {

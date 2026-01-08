@@ -6,7 +6,7 @@ import { applyRuntimeConfig } from './config';
 
 async function bootstrap() {
   try {
-    const response = await fetch('/config/config.json', { cache: 'no-store' });
+    const response = await fetch('config/config.json', { cache: 'no-store' });
     if (response.ok) {
       const runtimeConfig = await response.json();
       window.__APP_CONFIG__ = runtimeConfig;
