@@ -73,9 +73,9 @@ export async function apiFetch<T>(path: string, options: FetchOptions = {}, hasR
 }
 
 export async function getCurrentUser(): Promise<SessionUser> {
-  const result = await apiFetch<SessionUser>('/auth/user', { method: 'GET' });
-  if (!result) {
+  const result = await apiFetch<{ user: SessionUser }>('/auth/user', { method: 'GET' });
+  if (!result?.user) {
     throw new Error('No session user');
   }
-  return result;
+  return result.user;
 }
