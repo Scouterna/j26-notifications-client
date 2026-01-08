@@ -5,7 +5,7 @@ import { getMessagingClient } from '../firebase';
 
 function buildServiceWorkerUrl(firebaseConfig: FirebaseConfig): string {
   const cfg = btoa(JSON.stringify(firebaseConfig));
-  const swUrl = new URL('firebase-messaging-sw.js', window.location.href);
+  const swUrl = new URL('firebase-messaging-sw.js', document.baseURI);
   swUrl.searchParams.set('cfg', cfg);
   return swUrl.toString();
 }

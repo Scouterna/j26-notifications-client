@@ -3,6 +3,19 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    (function () {
+      var base = document.createElement('base');
+      var path = window.location.pathname;
+      if (!path.endsWith('/')) {
+        var lastSlash = path.lastIndexOf('/');
+        var lastSegment = path.slice(lastSlash + 1);
+        path = lastSegment.includes('.') ? path.slice(0, lastSlash + 1) : path + '/';
+      }
+      base.href = window.location.origin + path;
+      document.head.appendChild(base);
+    })();
+  </script>
   <link rel="icon" type="image/icon" href="./scouterna.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>J26 Notification Client</title>
