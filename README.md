@@ -1,115 +1,51 @@
-# J26 Notifications Client
+# J26 Notifications Sender
 
-This is a minimal React/Vite client that talks to the existing FastAPI messaging backend. It assumes that authentication is handled upstream (OIDC) and relies on the backend to validate the browser session via cookies.
+This is a complete rewrite of the messaging client service and now focuses on a user interface for sending messages for the J26 platform.
+The Firebase service worker that receives notifications is removed along with the ability to view sent notifications.
 
-## Getting Started
+It is built as a TanStack Start service so it can live inside the same app-shell model as the other J26 applications. The browser only renders the send form and submits to the notification backend over the same domain. Authorization is enforced by the backend from the platform JWT cookie.
 
-```bash
-npm install
-npm run dev
-```
+## Behavior
 
-The dev server runs on http://localhost:5173 by default.
+- In local development, the sender UI runs at `/`.
+- In deployed environments, the sender UI is mounted under `/_services/notification-client`.
+- The app-shell navigation entry is served from `/app-config` inside the service.
+- Notification submits are sent to a same-origin notifications path and include cookies.
+- The backend remains the real authorization boundary.
+- The sender UI may decode the JWT cookie for display and UX gating, but not for security.
 
-## Environment
+## Configuration
 
-Copy `.env.example` to `.env` and update the variables. Key settings:
+These variables control the sender service:
 
-- `VITE_PLATFORM_BASE_URL` – Shared base domain (e.g. `https://app.dev.j26.se`). This host serves both the `/auth/*` routes and the notification APIs.
-- `VITE_MESSAGING_API_PREFIX` – Path prefix for notification endpoints (e.g. `/messaging/api/v1`).
-- `VITE_DEFAULT_TENANT` – Tenant key the client should load on startup.
-- `VITE_NOTIFICATION_POLL_INTERVAL_MS` – Optional poll interval for channel notification refresh (default `30000`). Set to `0` to disable auto-polling.
-- `VITE_NOTIFICATION_LIMIT` – Number of notifications to request per poll (default `10`).
-- Firebase values + `VITE_FIREBASE_VAPID_KEY` – Required for web push. Leave blank to disable push support.
+- `J26_SERVICE_BASE_PATH`: app base path. Defaults to `/` in local development and `/_services/notification-client` outside development.
+- `J26_NOTIFICATIONS_PROXY_PREFIX`: same-origin prefix used for notification API calls. Default: `/notifications`
+- `J26_NOTIFICATIONS_TENANT`: tenant slug used for submit requests. Default: `jamboree26`
+- `J26_NOTIFICATIONS_UPSTREAM`: optional override for the local development upstream. Defaults to `http://localhost:8000` in development and is unset outside development.
 
-## Runtime configuration & deployment
+The app base path is environment-driven so local development can run at `/` while deployed environments still use the app-shell mount point.
 
-At runtime, the app reads `/config/config.json` before rendering. During local dev you can copy `public/config.example.json` to `public/config/config.json` and tweak the values; in production mount a Kubernetes `ConfigMap` at `/usr/share/nginx/html/config/config.json`. Example ConfigMap + Deployment:
+For local development, copy `.env.local.template` to `.env.local` and adjust values as needed.
 
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: j26-client-runtime-config
-data:
-  config.json: |
-    { "platformBaseUrl": "https://app.dev.j26.se", "messagingApiPrefix": "/messaging/api/v1", ... }
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: j26-client
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: j26-client
-  template:
-    metadata:
-      labels:
-        app: j26-client
-    spec:
-      containers:
-        - name: web
-          image: ghcr.io/example/j26-client:latest
-          ports:
-            - containerPort: 80
-          volumeMounts:
-            - name: runtime-config
-              mountPath: /usr/share/nginx/html/config
-              readOnly: true
-      volumes:
-        - name: runtime-config
-          configMap:
-            name: j26-client-runtime-config
-            items:
-              - key: config.json
-                path: config.json
-```
+## Local Development
 
-### CI/CD example (GitHub Actions)
+The dev server runs on port `3000`.
 
-Because configuration is provided at runtime, the Docker build just needs to run `npm run build` and push the resulting Nginx image. A minimal workflow:
+With the default configuration, the sender app is available at `http://localhost:3000/`.
 
-```yaml
-name: build-and-push
-on:
-  push:
-    branches: [main]
+In local development, the service proxies `/notifications/**` to `http://localhost:8000` unless `J26_NOTIFICATIONS_UPSTREAM` overrides it. In Kubernetes, the same-origin `/notifications` path should be handled by the platform ingress/backend routing instead.
 
-jobs:
-  docker:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v5
-        with:
-          push: true
-          tags: ghcr.io/<org>/j26-client:${{ github.sha }}
-```
+## Kubernetes
 
-Adjust the registry/login step for your environment; additional steps (tests, lint) can run before the `docker/build-push-action` step.
+The manifests are controlled by ArgoCD and assumes:
 
-## Features
+- the sender service is exposed at `/_services/notification-client`
+- `J26_SERVICE_BASE_PATH` is set to `/_services/notification-client` in the deployment environment
+- ingress rewrites preserve that base path for the Node app
+- the service listens on container port `3000`
+- the Kubernetes Service exposes port `80`
+- same-domain routing for `/notifications` is handled outside this service
 
-- Loads the current authenticated user via `/auth/user` and retries requests after `/auth/refresh` on HTTP 401.
-- Lists channels for the selected tenant, showing subscription status and letting users join or leave.
-- Fetches the current user's subscriptions and polls `/notifications` every 30 seconds (configurable).
-- Registers the Firebase service worker, requests notification permission, and includes the FCM token on subscribe calls.
-- Displays foreground push notifications via the Firebase SDK; background notifications are handled by the service worker.
+## Notes
 
-## Folder Structure
-
-- `src/api` – Fetch helpers for auth-aware API calls + notification operations.
-- `src/components` – Presentational React components.
-- `src/push` – Hooks for Firebase messaging + foreground notifications.
-- `public/firebase-messaging-sw.js` – Service worker script loaded with Firebase config via query string.
+This repo intentionally keeps the sender focused on composing and submitting notifications. Push registration, notification feeds, and receiver-specific behavior belong elsewhere.

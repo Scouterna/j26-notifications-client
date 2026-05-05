@@ -1,22 +1,33 @@
-# Stage 1: build the static assets
-FROM node:22-alpine AS build
+# ── Stage 1: install all dependencies (needed for build) ─────────────────────
+FROM node:22-alpine AS deps
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
 WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-COPY package*.json ./
-RUN npm ci
+# ── Stage 2: build the app ────────────────────────────────────────────────────
+FROM node:22-alpine AS builder
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
 
-# Stage 2: serve with nginx
-FROM nginx:1.27-alpine
-WORKDIR /usr/share/nginx/html
+# Produces the Nitro server bundle in .output/
+RUN pnpm build
 
-COPY --from=build /app/dist ./
+# ── Stage 3: production image ─────────────────────────────────────────────────
+FROM node:22-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
 
-# Replace the default nginx config with a simple SPA-friendly version
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Self-contained Nitro server bundle — no node_modules needed at runtime
+COPY --from=builder /app/.output ./.output
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 3000
+CMD ["node", ".output/server/index.mjs"]
