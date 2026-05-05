@@ -147,8 +147,8 @@ function NotificationSenderPage() {
 				});
 
 				if (refreshRes.status === 401) {
-					const loginUrl = `${senderConfig.loginPath}?redirect_uri=${encodeURIComponent(window.location.href)}`;
-					window.location.href = loginUrl;
+					setError(t.sessionExpired);
+					setSending(false);
 					return;
 				}
 

@@ -27,10 +27,11 @@ export interface Translations {
 	sent: string;
 	sendError: (status: number, detail: string) => string;
 	networkError: string;
+	sessionExpired: string;
 }
 
 const en: Translations = {
-	appTitle: "J26 Notification Sender",
+	appTitle: "J26 Notification Client",
 	appBarTitle: "Send notification",
 	accessDenied: "Access denied",
 	accessDeniedMessage:
@@ -57,6 +58,7 @@ const en: Translations = {
 	sent: "Sent",
 	sendError: (status, detail) => `Send error (${status}): ${detail}`,
 	networkError: "Could not reach the API. Check your network connection.",
+	sessionExpired: "Your session has expired. Please reload the page and log in again.",
 };
 
 const sv: Translations = {
@@ -92,6 +94,7 @@ const sv: Translations = {
 	sent: "Skickad",
 	sendError: (status, detail) => `Fel vid sändning (${status}): ${detail}`,
 	networkError: "Kunde inte nå API:et. Kontrollera nätverksanslutningen.",
+	sessionExpired: "Din session har gått ut. Ladda om sidan och logga in igen.",
 };
 
 export const translations: Record<Lang, Translations> = { en, sv };
