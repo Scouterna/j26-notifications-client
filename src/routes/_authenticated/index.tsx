@@ -129,18 +129,30 @@ function NotificationSenderPage() {
 		if (category.trim()) payload.category = category.trim();
 		if (link.trim()) payload.link = link.trim();
 
-		try {
-			const res = await fetch(senderConfig.notificationPostPath, {
+		async function postNotification() {
+			return fetch(senderConfig.notificationPostPath, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				credentials: "include",
 				body: JSON.stringify(payload),
 			});
+		}
+
+		try {
+			let res = await postNotification();
 
 			if (res.status === 401) {
-				const loginUrl = `${senderConfig.loginPath}?redirect_uri=${encodeURIComponent(window.location.href)}`;
-				window.location.href = loginUrl;
-				return;
+				const refreshRes = await fetch(senderConfig.refreshPath, {
+					credentials: "include",
+				});
+
+				if (refreshRes.status === 401) {
+					const loginUrl = `${senderConfig.loginPath}?redirect_uri=${encodeURIComponent(window.location.href)}`;
+					window.location.href = loginUrl;
+					return;
+				}
+
+				res = await postNotification();
 			}
 
 			if (!res.ok) {

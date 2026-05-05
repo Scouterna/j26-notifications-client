@@ -9,6 +9,7 @@ import {
 
 export interface SenderRuntimeConfig {
 	loginPath: string;
+	refreshPath: string;
 	notificationPostPath: string;
 	serviceBasePath: string;
 	tenant: string;
@@ -28,6 +29,7 @@ function readRuntimeConfig(): SenderRuntimeConfig {
 
 	return {
 		loginPath: "/auth/login",
+		refreshPath: "/auth/refresh",
 		notificationPostPath: buildTenantNotificationsPath(
 			notificationsProxyPrefix,
 			tenant,
