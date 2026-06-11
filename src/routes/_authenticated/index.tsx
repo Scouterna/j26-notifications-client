@@ -1,14 +1,14 @@
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
 import {
 	Alert,
+	Autocomplete,
 	Box,
 	Button,
 	CircularProgress,
 	FormControlLabel,
-	IconButton,
 	Paper,
+	Radio,
+	RadioGroup,
 	Stack,
 	Switch,
 	Tab,
@@ -17,7 +17,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "#/lib/lang-context";
 import { useAppBarTitle } from "#/lib/use-app-bar-title";
 import { getSenderRuntimeConfig } from "#/server/runtime-config";
@@ -38,18 +38,30 @@ export const Route = createFileRoute("/_authenticated/")({
 	component: NotificationSenderPage,
 });
 
+type RecipientMode = "groups" | "individual" | "all";
+
+function topLevelSegment(path: string): string {
+	return path.split("/")[1] ?? "";
+}
+
+function parseIndividuals(text: string): string[] {
+	return text
+		.split(/[\n,]/)
+		.map((s) => s.trim())
+		.filter(Boolean);
+}
+
 function NotificationSenderPage() {
 	const t = useT();
 	useAppBarTitle(t.appBarTitle);
 	const senderConfig = Route.useLoaderData();
 
-	interface Channel {
-		id: number;
-		value: string;
-	}
-	const nextId = useRef(1);
-	const [channels, setChannels] = useState<Channel[]>([{ id: 0, value: "" }]);
-	const [sendToAll, setSendToAll] = useState(false);
+	const [mode, setMode] = useState<RecipientMode>("groups");
+	const [groups, setGroups] = useState<string[]>([]);
+	const [groupsLoading, setGroupsLoading] = useState(true);
+	const [groupsError, setGroupsError] = useState(false);
+	const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+	const [individualText, setIndividualText] = useState("");
 	const [content, setContent] = useState<Record<Locale, LocaleContent>>({
 		sv: emptyContent(),
 		en: emptyContent(),
@@ -64,19 +76,51 @@ function NotificationSenderPage() {
 	const [sent, setSent] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	function addChannel() {
-		setChannels((prev) => [...prev, { id: nextId.current++, value: "" }]);
-	}
+	useEffect(() => {
+		let active = true;
 
-	function removeChannel(id: number) {
-		setChannels((prev) => prev.filter((ch) => ch.id !== id));
-	}
+		async function fetchGroups() {
+			return fetch(senderConfig.groupsPath, { credentials: "include" });
+		}
 
-	function updateChannel(id: number, value: string) {
-		setChannels((prev) =>
-			prev.map((ch) => (ch.id === id ? { ...ch, value } : ch)),
-		);
-	}
+		(async () => {
+			try {
+				let res = await fetchGroups();
+
+				if (res.status === 401) {
+					await fetch(senderConfig.refreshPath, { credentials: "include" });
+					res = await fetchGroups();
+				}
+
+				if (!res.ok) throw new Error(`Failed to load groups: ${res.status}`);
+
+				const data: string[] = await res.json();
+				// Sort by top-level segment so Autocomplete's groupBy headers stay
+				// contiguous, then alphabetically within each group.
+				const sorted = [...data].sort((a, b) => {
+					const ta = topLevelSegment(a);
+					const tb = topLevelSegment(b);
+					return ta === tb ? a.localeCompare(b) : ta.localeCompare(tb);
+				});
+
+				if (active) {
+					setGroups(sorted);
+					setGroupsLoading(false);
+				}
+			} catch {
+				if (active) {
+					setGroupsError(true);
+					setGroupsLoading(false);
+					// Don't trap the user if the list can't load.
+					setMode("individual");
+				}
+			}
+		})();
+
+		return () => {
+			active = false;
+		};
+	}, [senderConfig.groupsPath, senderConfig.refreshPath]);
 
 	function updateContent(
 		locale: Locale,
@@ -91,7 +135,9 @@ function NotificationSenderPage() {
 
 	function isFormValid(): boolean {
 		const hasChannels =
-			sendToAll || channels.some((c) => c.value.trim().length > 0);
+			mode === "all" ||
+			(mode === "groups" && selectedGroups.length > 0) ||
+			(mode === "individual" && parseIndividuals(individualText).length > 0);
 		const hasSv =
 			content.sv.title.trim().length > 0 && content.sv.body.trim().length > 0;
 		const hasEn =
@@ -111,6 +157,15 @@ function NotificationSenderPage() {
 			}
 		}
 
+		let channels: string[];
+		if (mode === "all") {
+			channels = ["@all"];
+		} else if (mode === "groups") {
+			channels = selectedGroups;
+		} else {
+			channels = parseIndividuals(individualText);
+		}
+
 		const payload: {
 			channels: string[];
 			notification: Record<string, { title: string; body: string }>;
@@ -118,11 +173,7 @@ function NotificationSenderPage() {
 			category?: string;
 			link?: string;
 		} = {
-			channels: sendToAll
-				? ["@all"]
-				: channels
-						.filter((c) => c.value.trim().length > 0)
-						.map((c) => c.value.trim()),
+			channels,
 			notification,
 			important,
 		};
@@ -181,62 +232,94 @@ function NotificationSenderPage() {
 
 			{error && <Alert severity="error">{error}</Alert>}
 
-			{/* Channels */}
+			{/* Recipients */}
 			<Paper variant="outlined" sx={{ p: 2 }}>
 				<Typography variant="subtitle1" fontWeight="medium" gutterBottom>
-					{t.channelsTitle}
+					{t.groupsTitle}
 				</Typography>
-				<FormControlLabel
-					control={
-						<Switch
-							checked={sendToAll}
-							onChange={(e) => setSendToAll(e.target.checked)}
-							disabled={disabled}
-						/>
-					}
-					label={t.sendToAll}
-				/>
-				{!sendToAll && (
-					<Stack spacing={1} mt={1}>
-						{channels.map((ch, i) => (
-							<Stack
-								direction="row"
-								spacing={1}
-								alignItems="center"
-								key={ch.id}
-							>
-								<TextField
-									label={t.channelLabel(i + 1)}
-									value={ch.value}
-									onChange={(e) => updateChannel(ch.id, e.target.value)}
-									fullWidth
-									size="small"
-									disabled={disabled}
-									placeholder={t.channelPlaceholder}
-									InputLabelProps={{ shrink: true }}
-								/>
-								<IconButton
-									onClick={() => removeChannel(ch.id)}
-									disabled={disabled || channels.length === 1}
-									size="small"
-									aria-label={t.removeChannel}
-								>
-									<DeleteIcon fontSize="small" />
-								</IconButton>
-							</Stack>
-						))}
-						<Box>
-							<Button
-								startIcon={<AddIcon />}
-								onClick={addChannel}
-								size="small"
-								disabled={disabled}
-							>
-								{t.addChannel}
-							</Button>
-						</Box>
-					</Stack>
+
+				{groupsError && (
+					<Alert severity="warning" sx={{ mb: 2 }}>
+						{t.groupsLoadError}
+					</Alert>
 				)}
+
+				<RadioGroup
+					row
+					value={mode}
+					onChange={(e) => setMode(e.target.value as RecipientMode)}
+				>
+					<FormControlLabel
+						value="groups"
+						control={<Radio />}
+						label={t.modeGroups}
+						disabled={disabled || groupsError}
+					/>
+					<FormControlLabel
+						value="individual"
+						control={<Radio />}
+						label={t.modeIndividual}
+						disabled={disabled}
+					/>
+					<FormControlLabel
+						value="all"
+						control={<Radio />}
+						label={t.sendToAll}
+						disabled={disabled}
+					/>
+				</RadioGroup>
+
+				<Box sx={{ mt: 1 }}>
+					{mode === "groups" && (
+						<Autocomplete
+							multiple
+							options={groups}
+							value={selectedGroups}
+							onChange={(_, value) => setSelectedGroups(value)}
+							groupBy={(option) => topLevelSegment(option)}
+							loading={groupsLoading}
+							disabled={disabled || groupsError}
+							renderInput={(params) => (
+								<TextField
+									{...params}
+									label={t.groupsSelectLabel}
+									placeholder={t.groupsSelectPlaceholder}
+									InputProps={{
+										...params.InputProps,
+										endAdornment: (
+											<>
+												{groupsLoading ? (
+													<CircularProgress color="inherit" size={20} />
+												) : null}
+												{params.InputProps.endAdornment}
+											</>
+										),
+									}}
+								/>
+							)}
+						/>
+					)}
+
+					{mode === "individual" && (
+						<TextField
+							label={t.individualLabel}
+							value={individualText}
+							onChange={(e) => setIndividualText(e.target.value)}
+							fullWidth
+							multiline
+							rows={3}
+							disabled={disabled}
+							placeholder={t.individualPlaceholder}
+							InputLabelProps={{ shrink: true }}
+						/>
+					)}
+
+					{mode === "all" && (
+						<Typography variant="body2" color="text.secondary">
+							{t.sendToAllHint}
+						</Typography>
+					)}
+				</Box>
 			</Paper>
 
 			{/* Content per language */}

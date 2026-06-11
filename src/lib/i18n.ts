@@ -5,12 +5,16 @@ export interface Translations {
 	appBarTitle: string;
 	accessDenied: string;
 	accessDeniedMessage: string;
-	channelsTitle: string;
+	groupsTitle: string;
+	modeGroups: string;
+	modeIndividual: string;
 	sendToAll: string;
-	channelLabel: (n: number) => string;
-	channelPlaceholder: string;
-	removeChannel: string;
-	addChannel: string;
+	groupsSelectLabel: string;
+	groupsSelectPlaceholder: string;
+	groupsLoadError: string;
+	individualLabel: string;
+	individualPlaceholder: string;
+	sendToAllHint: string;
 	contentTitle: string;
 	contentHint: string;
 	localeLabels: Record<string, string>;
@@ -36,12 +40,17 @@ const en: Translations = {
 	accessDenied: "Access denied",
 	accessDeniedMessage:
 		"You do not have permission to use this service. Contact an administrator if you think this is a mistake.",
-	channelsTitle: "Channels",
+	groupsTitle: "Recipients",
+	modeGroups: "Groups",
+	modeIndividual: "Individual recipients",
 	sendToAll: 'Send to all ("@all")',
-	channelLabel: (n) => `Channel ${n}`,
-	channelPlaceholder: "e.g. /scoutnet/784 or scoutnet|3073781",
-	removeChannel: "Remove channel",
-	addChannel: "Add channel",
+	groupsSelectLabel: "Select groups",
+	groupsSelectPlaceholder: "Search groups…",
+	groupsLoadError:
+		"Could not load groups. You can still enter recipients manually.",
+	individualLabel: "Recipient identifiers",
+	individualPlaceholder: "One per line, e.g. scoutnet|3073781",
+	sendToAllHint: "The notification will be sent to every registered user.",
 	contentTitle: "Content",
 	contentHint: "(at least Swedish or English required)",
 	localeLabels: { sv: "Swedish", en: "English", nl: "Dutch", uk: "Ukrainian" },
@@ -58,7 +67,8 @@ const en: Translations = {
 	sent: "Sent",
 	sendError: (status, detail) => `Send error (${status}): ${detail}`,
 	networkError: "Could not reach the API. Check your network connection.",
-	sessionExpired: "Your session has expired. Please reload the page and log in again.",
+	sessionExpired:
+		"Your session has expired. Please reload the page and log in again.",
 };
 
 const sv: Translations = {
@@ -67,12 +77,16 @@ const sv: Translations = {
 	accessDenied: "Åtkomst nekad",
 	accessDeniedMessage:
 		"Du har inte behörighet att använda den här tjänsten. Kontakta en administratör om du tror att det är ett misstag.",
-	channelsTitle: "Kanaler",
+	groupsTitle: "Mottagare",
+	modeGroups: "Grupper",
+	modeIndividual: "Enskilda mottagare",
 	sendToAll: 'Skicka till alla ("@all")',
-	channelLabel: (n) => `Kanal ${n}`,
-	channelPlaceholder: "t.ex. /scoutnet/784 eller scoutnet|3073781",
-	removeChannel: "Ta bort kanal",
-	addChannel: "Lägg till kanal",
+	groupsSelectLabel: "Välj grupper",
+	groupsSelectPlaceholder: "Sök grupper…",
+	groupsLoadError: "Kunde inte ladda grupper. Du kan ange mottagare manuellt.",
+	individualLabel: "Mottagaridentifierare",
+	individualPlaceholder: "En per rad, t.ex. scoutnet|3073781",
+	sendToAllHint: "Notisen skickas till alla registrerade användare.",
 	contentTitle: "Innehåll",
 	contentHint: "(minst svenska eller engelska krävs)",
 	localeLabels: {

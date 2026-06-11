@@ -64,3 +64,17 @@ export function buildTenantNotificationsPath(
 
 	return `${normalizedPrefix}/api/tenants/${normalizedTenant}/notifications`;
 }
+
+export function buildTenantGroupsPath(
+	proxyPrefix: string,
+	tenant: string,
+): string {
+	const normalizedPrefix = normalizeBasePath(proxyPrefix);
+	const normalizedTenant = tenant.trim();
+
+	if (!normalizedTenant) {
+		throw new Error("Notification tenant is required");
+	}
+
+	return `${normalizedPrefix}/api/tenants/${normalizedTenant}/groups`;
+}
