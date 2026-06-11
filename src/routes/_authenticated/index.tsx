@@ -44,6 +44,10 @@ function topLevelSegment(path: string): string {
 	return path.split("/")[1] ?? "";
 }
 
+// Prefix the backend expects on individual recipient identifiers. The UI takes
+// bare member numbers; this is prepended only when building the send payload.
+const SCOUTNET_PREFIX = "scoutnet|";
+
 function parseIndividuals(text: string): string[] {
 	return text
 		.split(/[\n,]/)
@@ -163,7 +167,12 @@ function NotificationSenderPage() {
 		} else if (mode === "groups") {
 			channels = selectedGroups;
 		} else {
-			channels = parseIndividuals(individualText);
+			// Accept a bare member number, but tolerate a pasted "scoutnet|" prefix
+			// so we never double it up.
+			channels = parseIndividuals(individualText).map(
+				(id) =>
+					`${SCOUTNET_PREFIX}${id.startsWith(SCOUTNET_PREFIX) ? id.slice(SCOUTNET_PREFIX.length) : id}`,
+			);
 		}
 
 		const payload: {
