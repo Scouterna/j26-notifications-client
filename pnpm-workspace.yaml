@@ -1,0 +1,6 @@
+# pnpm 10+ reads the build-script allowlist from here, not from the
+# package.json "pnpm" field (which newer pnpm ignores). These packages have
+# install scripts that fetch/compile native binaries and must be allowed to run.
+onlyBuiltDependencies:
+  - esbuild
+  - lightningcss

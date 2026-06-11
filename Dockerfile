@@ -5,7 +5,9 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
+# pnpm-workspace.yaml carries the onlyBuiltDependencies allowlist that pnpm 10+
+# requires to run native install scripts (esbuild, lightningcss).
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # ── Stage 2: build the app ────────────────────────────────────────────────────
