@@ -72,7 +72,10 @@ function NotificationSenderPage() {
 		nl: emptyContent(),
 		uk: emptyContent(),
 	});
-	const [category, setCategory] = useState("");
+	// Category is hidden in the UI for now (unused by the receiving app). Kept as
+	// an empty constant so the payload wiring stays intact; restore the useState
+	// and the field's JSX together to re-enable it.
+	const category = "";
 	const [link, setLink] = useState("");
 	const [important, setImportant] = useState(false);
 	const [activeTab, setActiveTab] = useState<Locale>("sv");
@@ -416,15 +419,7 @@ function NotificationSenderPage() {
 					{t.settingsTitle}
 				</Typography>
 				<Stack spacing={2}>
-					<TextField
-						label={t.categoryLabel}
-						value={category}
-						onChange={(e) => setCategory(e.target.value)}
-						fullWidth
-						disabled={disabled}
-						placeholder={t.categoryPlaceholder}
-						InputLabelProps={{ shrink: true }}
-					/>
+					{/* Category field hidden for now — see the `category` const above. */}
 					<TextField
 						label={t.linkLabel}
 						value={link}
