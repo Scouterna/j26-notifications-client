@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import {
 	buildTenantGroupsPath,
+	buildTenantImportantNotificationsPath,
 	buildTenantNotificationsPath,
 	DEFAULT_NOTIFICATIONS_PROXY_PREFIX,
 	DEFAULT_NOTIFICATIONS_TENANT,
@@ -13,6 +14,10 @@ export interface SenderRuntimeConfig {
 	refreshPath: string;
 	notificationPostPath: string;
 	groupsPath: string;
+	importantListPath: string;
+	// Prefix + tenant so the per-notification PATCH path can be built with an id
+	// at call time via buildTenantNotificationPath().
+	notificationsProxyPrefix: string;
 	serviceBasePath: string;
 	tenant: string;
 }
@@ -37,6 +42,11 @@ function readRuntimeConfig(): SenderRuntimeConfig {
 			tenant,
 		),
 		groupsPath: buildTenantGroupsPath(notificationsProxyPrefix, tenant),
+		importantListPath: buildTenantImportantNotificationsPath(
+			notificationsProxyPrefix,
+			tenant,
+		),
+		notificationsProxyPrefix,
 		serviceBasePath,
 		tenant,
 	};

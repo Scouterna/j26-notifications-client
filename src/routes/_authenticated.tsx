@@ -1,5 +1,10 @@
-import { Box, Container, Typography } from "@mui/material";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { Box, Container, Tab, Tabs, Typography } from "@mui/material";
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	useRouterState,
+} from "@tanstack/react-router";
 import { useT } from "#/lib/lang-context";
 import { UserContext } from "#/lib/user-context";
 import { getUserStatus } from "#/server/auth";
@@ -41,10 +46,25 @@ function Unauthorized() {
 
 function AuthenticatedLayout() {
 	const { user } = Route.useRouteContext();
+	const t = useT();
+	// Highlight the active tab by matching the current pathname to the child route.
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const activeTab = pathname.replace(/\/+$/, "").endsWith("/important")
+		? "important"
+		: "send";
 
 	return (
 		<UserContext.Provider value={user}>
 			<Container maxWidth="sm" sx={{ mt: 4, mb: 4 }}>
+				<Tabs value={activeTab} sx={{ mb: 3 }}>
+					<Tab value="send" label={t.tabSend} component={Link} to="/" />
+					<Tab
+						value="important"
+						label={t.tabImportant}
+						component={Link}
+						to="/important"
+					/>
+				</Tabs>
 				<Outlet />
 			</Container>
 		</UserContext.Provider>

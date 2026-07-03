@@ -78,3 +78,18 @@ export function buildTenantGroupsPath(
 
 	return `${normalizedPrefix}/api/tenants/${normalizedTenant}/groups`;
 }
+
+export function buildTenantImportantNotificationsPath(
+	proxyPrefix: string,
+	tenant: string,
+): string {
+	return `${buildTenantNotificationsPath(proxyPrefix, tenant)}/important`;
+}
+
+export function buildTenantNotificationPath(
+	proxyPrefix: string,
+	tenant: string,
+	notificationId: number | string,
+): string {
+	return `${buildTenantNotificationsPath(proxyPrefix, tenant)}/${notificationId}`;
+}

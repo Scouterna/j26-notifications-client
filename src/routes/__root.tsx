@@ -8,7 +8,7 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import { CssBaseline, ThemeProvider } from "@mui/material";
+import { Box, CssBaseline, ThemeProvider, Typography } from "@mui/material";
 import { LangContext } from "../lib/lang-context";
 import { useHtmlLang } from "../lib/use-html-lang";
 import { theme } from "../theme";

@@ -32,6 +32,28 @@ export interface Translations {
 	sendError: (status: number, detail: string) => string;
 	networkError: string;
 	sessionExpired: string;
+	// Tabs
+	tabSend: string;
+	tabImportant: string;
+	// Important-notifications list
+	importantListTitle: string;
+	importantListHint: string;
+	importantListEmpty: string;
+	importantListError: string;
+	clearImportant: string;
+	clearImportantCount: (count: number) => string;
+	clearing: string;
+	clearImportantError: (status: number, detail: string) => string;
+	clearBatchError: (failed: number) => string;
+	untitledNotification: string;
+	sentAtLabel: (when: string) => string;
+	channelsAll: string;
+	// Confirm dialog
+	confirmClearTitle: string;
+	confirmClearIntro: (count: number) => string;
+	confirmClearIrreversible: string;
+	confirmClearConfirm: string;
+	confirmClearCancel: string;
 }
 
 const en: Translations = {
@@ -69,6 +91,34 @@ const en: Translations = {
 	networkError: "Could not reach the API. Check your network connection.",
 	sessionExpired:
 		"Your session has expired. Please reload the page and log in again.",
+	tabSend: "Send",
+	tabImportant: "Important",
+	importantListTitle: "Important notifications",
+	importantListHint:
+		"These stay pinned to the top in the app. Clear the flag when a notification is no longer important.",
+	importantListEmpty: "No notifications are currently marked important.",
+	importantListError: "Could not load important notifications.",
+	clearImportant: "Clear important",
+	clearImportantCount: (count) => `Clear important (${count})`,
+	clearing: "Clearing…",
+	clearImportantError: (status, detail) =>
+		`Could not clear (${status}): ${detail}`,
+	clearBatchError: (failed) =>
+		failed === 1
+			? "1 notification could not be cleared and is still listed."
+			: `${failed} notifications could not be cleared and are still listed.`,
+	untitledNotification: "(no title)",
+	sentAtLabel: (when) => `Sent ${when}`,
+	channelsAll: "All users",
+	confirmClearTitle: "Clear important flag?",
+	confirmClearIntro: (count) =>
+		count === 1
+			? "This notification will no longer be shown first:"
+			: `These ${count} notifications will no longer be shown first:`,
+	confirmClearIrreversible:
+		"This cannot be undone from here — you would have to send a new notification.",
+	confirmClearConfirm: "Clear important",
+	confirmClearCancel: "Cancel",
 };
 
 const sv: Translations = {
@@ -109,6 +159,34 @@ const sv: Translations = {
 	sendError: (status, detail) => `Fel vid sändning (${status}): ${detail}`,
 	networkError: "Kunde inte nå API:et. Kontrollera nätverksanslutningen.",
 	sessionExpired: "Din session har gått ut. Ladda om sidan och logga in igen.",
+	tabSend: "Skicka",
+	tabImportant: "Viktiga",
+	importantListTitle: "Viktiga notiser",
+	importantListHint:
+		"Dessa visas överst i appen. Ta bort markeringen när en notis inte längre är viktig.",
+	importantListEmpty: "Inga notiser är markerade som viktiga just nu.",
+	importantListError: "Kunde inte ladda viktiga notiser.",
+	clearImportant: "Ta bort viktig",
+	clearImportantCount: (count) => `Ta bort viktig (${count})`,
+	clearing: "Tar bort…",
+	clearImportantError: (status, detail) =>
+		`Kunde inte ta bort (${status}): ${detail}`,
+	clearBatchError: (failed) =>
+		failed === 1
+			? "1 notis kunde inte tas bort och visas fortfarande."
+			: `${failed} notiser kunde inte tas bort och visas fortfarande.`,
+	untitledNotification: "(ingen rubrik)",
+	sentAtLabel: (when) => `Skickad ${when}`,
+	channelsAll: "Alla användare",
+	confirmClearTitle: "Ta bort viktig-markering?",
+	confirmClearIntro: (count) =>
+		count === 1
+			? "Den här notisen visas inte längre först:"
+			: `Dessa ${count} notiser visas inte längre först:`,
+	confirmClearIrreversible:
+		"Detta kan inte ångras härifrån — du får skicka en ny notis.",
+	confirmClearConfirm: "Ta bort viktig",
+	confirmClearCancel: "Avbryt",
 };
 
 export const translations: Record<Lang, Translations> = { en, sv };
